@@ -1,0 +1,81 @@
+version: 2.1
+
+executors:
+  build-image:
+    docker:
+      - image: eu.gcr.io/mgcp-infrastructure/toolbox
+
+commands:
+  init_script:  
+    steps:
+      - run:
+          name: Authenticate to Google
+          command: |
+            echo $GCLOUD_SERVICE_KEY | base64 -d > /tmp/gcloud-service-key.json
+
+jobs:
+  plan:
+    executor: build-image
+    steps:
+      - checkout
+      - init_script
+      - run:
+          name: Lint
+          command: bin/lint.sh
+      - run:
+          name: Running Terraform Plan
+          command: bin/plan.sh
+      - persist_to_workspace:
+          root: tests
+          paths:
+            - terraform-*.tar.gz
+            - terraform-*.plan
+
+  lint:
+    executor: build-image
+    steps:
+      - checkout
+      - init_script
+      - run:
+          name: Lint Module
+          command: tfenv install && terraform fmt -check=true -write=false -diff=true -list=true && echo
+
+  apply:
+    executor: build-image
+    steps:
+      - checkout
+      - init_script
+      - attach_workspace:
+          at: /root/project/tests
+      - run:
+          name: Applying Terraform Plan
+          command: bin/apply.sh
+
+  destroy:
+    executor: build-image
+    steps:
+      - checkout
+      - init_script
+      - attach_workspace:
+          at: /root/project/tests
+      - run:
+          name: Destroying Terraform Resources
+          command: bin/destroy.sh
+
+workflows:
+  test_module:
+    jobs:
+      - lint
+      - plan
+      - apply:
+          requires:
+            - plan
+          filters:
+            branches:
+              ignore: master
+      - destroy:
+          requires:
+            - apply
+          filters:
+            branches:
+              ignore: master

@@ -7,7 +7,7 @@ module "vpn1" {
   gateway_name              = "test-gw-a"
   resource_prefix           = "test-a"
   shared_secrets            = ["foobar", "foobar"]
-  peer_ips                  = ["1.1.1.1","2.2.2.2"]
+  peer_ips                  = ["1.1.1.1", "2.2.2.2"]
   peer_asn                  = 65002
   peer_remote_session_range = ["169.254.0.6", "169.254.1.6"]
   bgp_asn                   = 65001

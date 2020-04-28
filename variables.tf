@@ -1,4 +1,5 @@
 
+
 variable "network" {
   type        = string
   description = "The name of the network to use"
@@ -32,9 +33,9 @@ variable "gateway_name" {
 
 
 variable "advertised_route_priority" {
-  type        = number
-  default     = 100
+  type        = list(number)
   description = "The priority of routes advertised to the BGP peers"
+  default     = [0, 0]
 }
 
 variable "bgp_cr_session_range" {

@@ -21,10 +21,10 @@ variable "peer_asn" {
   description = "ASN of the peer VPN's router"
 }
 
-variable "peer_ips" {
-  type        = list
-  description = "Peer Tunnel IPs"
-}
+# variable "peer_ips" {
+#   type        = list
+#   description = "Peer Tunnel IPs"
+# }
 
 variable "gateway_name" {
   type        = string
@@ -60,4 +60,16 @@ variable "resource_prefix" {
 variable "shared_secrets" {
   type        = list
   description = "IKEv2 Secret of the Tunnels"
+}
+
+variable "peer_external_gateway" {
+  description = "Configuration of an external VPN gateway to which this VPN is connected."
+  type = object({
+    redundancy_type = string
+    interfaces = list(object({
+      id         = number
+      ip_address = string
+    }))
+  })
+  default = null
 }

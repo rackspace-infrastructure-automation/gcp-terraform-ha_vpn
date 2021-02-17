@@ -14,21 +14,21 @@ resource "google_compute_router" "vpn-rtr" {
   }
 }
 
-resource "google_compute_external_vpn_gateway" "peer-gw" {
+resource "google_compute_external_vpn_gateway" "external_gateway" {
   provider        = google-beta
+  count           = var.peer_external_gateway != null ? 1 : 0
   name            = var.gateway_name
-  redundancy_type = "TWO_IPS_REDUNDANCY"
+  redundancy_type = var.peer_external_gateway.redundancy_type
   description     = "Peer VPN gateway"
-  interface {
-    id         = 0
-    ip_address = var.peer_ips[0]
-  }
-
-  interface {
-    id         = 1
-    ip_address = var.peer_ips[1]
+  dynamic "interface" {
+    for_each = var.peer_external_gateway.interfaces
+    content {
+      id         = interface.value.id
+      ip_address = interface.value.ip_address
+    }
   }
 }
+
 
 ## Tunnels
 
@@ -36,7 +36,7 @@ resource "google_compute_vpn_tunnel" "tunnel0" {
   provider                        = google-beta
   name                            = "${var.resource_prefix}-tunnels-0"
   vpn_gateway                     = google_compute_ha_vpn_gateway.ha_gateway.self_link
-  peer_external_gateway           = google_compute_external_vpn_gateway.peer-gw.self_link
+  peer_external_gateway           = google_compute_external_vpn_gateway.external_gateway[0].self_link
   peer_external_gateway_interface = 0
   shared_secret                   = var.shared_secrets[0]
   region                          = var.region
@@ -48,7 +48,7 @@ resource "google_compute_vpn_tunnel" "tunnel1" {
   provider                        = google-beta
   name                            = "${var.resource_prefix}-tunnels-1"
   vpn_gateway                     = google_compute_ha_vpn_gateway.ha_gateway.self_link
-  peer_external_gateway           = google_compute_external_vpn_gateway.peer-gw.self_link
+  peer_external_gateway           = google_compute_external_vpn_gateway.external_gateway[0].self_link
   peer_external_gateway_interface = 1
   shared_secret                   = var.shared_secrets[1]
   region                          = var.region

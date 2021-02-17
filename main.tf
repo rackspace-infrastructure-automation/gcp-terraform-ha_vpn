@@ -49,7 +49,7 @@ resource "google_compute_vpn_tunnel" "tunnel1" {
   name                            = "${var.resource_prefix}-tunnels-1"
   vpn_gateway                     = google_compute_ha_vpn_gateway.ha_gateway.self_link
   peer_external_gateway           = google_compute_external_vpn_gateway.external_gateway[0].self_link
-  peer_external_gateway_interface = 1
+  peer_external_gateway_interface = 0
   shared_secret                   = var.shared_secrets[1]
   region                          = var.region
   router                          = google_compute_router.vpn-rtr.self_link
